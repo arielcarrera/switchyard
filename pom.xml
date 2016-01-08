@@ -63,7 +63,11 @@
         <!-- consider moving to integration platform bom -->
         <version.camelsap>6.2.0.redhat-064</version.camelsap>
         <version.org.fusesource.mqtt-client>1.6</version.org.fusesource.mqtt-client>
-	<version.org.jboss.as>7.5.0.Final-redhat-21</version.org.jboss.as>
+		<version.org.jboss.as>7.5.0.Final-redhat-21</version.org.jboss.as>
+		<version.org.wildfly>8.1.0.Final</version.org.wildfly>
+		<version.org.wildfly.security>1.0.0.Final</version.org.wildfly.security>
+		<version.org.picketlink>2.5.2.Final</version.org.picketlink>
+		<version.org.keycloak>1.7.0.Final</version.org.keycloak>
         <!--  RiftSaw -->
         <version.activity.monitor.model>1.2.2.Final</version.activity.monitor.model>
         <version.overlord-commons>2.0.2.Final</version.overlord-commons>
@@ -737,6 +741,36 @@
                 <artifactId>saxonhe</artifactId>
                 <version>${version.net.sourceforge.saxon}</version>
             </dependency>
+			<dependency>
+				<groupId>org.wildfly</groupId>
+				<artifactId>wildfly-web</artifactId>
+				<version>${version.org.wildfly}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly</groupId>
+				<artifactId>wildfly-security</artifactId>
+				<version>${version.org.wildfly}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.wildfly.security</groupId>
+				<artifactId>wildfly-security-manager</artifactId>
+				<version>${version.org.wildfly.security}</version>
+			</dependency>
+	        <dependency>
+	            <groupId>org.picketlink.distribution</groupId>
+	            <artifactId>picketlink-jbas7</artifactId>
+	            <version>${version.org.picketlink}</version>
+	        </dependency>
+			<dependency>
+				<groupId>org.keycloak</groupId>
+				<artifactId>keycloak-core</artifactId>
+				<version>${version.org.keycloak}</version>
+			</dependency>
+	        <dependency>
+				<groupId>org.keycloak</groupId>
+				<artifactId>keycloak-undertow-adapter-spi</artifactId>
+				<version>${version.org.keycloak}</version>
+			</dependency>
             <!--  ###################################################################
       ##                    Riftsaw Dependencies                       ##
       ################################################################### -->

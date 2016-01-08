@@ -23,6 +23,7 @@ import java.util.Set;
 import org.switchyard.common.codec.Base64;
 import org.switchyard.common.lang.Strings;
 import org.switchyard.security.BaseSecurityLogger;
+import org.switchyard.security.credential.BearerTokenCredential;
 import org.switchyard.security.credential.Credential;
 import org.switchyard.security.credential.NameCredential;
 import org.switchyard.security.credential.PasswordCredential;
@@ -120,6 +121,11 @@ public class AuthorizationHeaderCredentialExtractor implements CredentialExtract
                     credentials.add(new NameCredential(username));
                 }
                 // TODO: complete per SWITCHYARD-1082
+            } else if (source.startsWith("Bearer ")) {
+                String encodedToken = source.substring(7, source.length()).trim();
+                if (encodedToken != null) {
+                    credentials.add(new BearerTokenCredential(encodedToken));
+                }
             }
         }
         return credentials;

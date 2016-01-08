@@ -43,6 +43,7 @@
         <!-- <module>serial/protostuff</module> -->
         <module>security/base</module>
         <module>security/jboss</module>
+        <module>security/wildfly</module>
         <module>security/karaf</module>
         <module>transform</module>
         <module>validate</module>
