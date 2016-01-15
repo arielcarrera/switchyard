@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><switchyard xmlns="urn:switchyard-config:switchyard:2.0" name="policy-security-openid" xmlns:bean="urn:switchyard-component-bean:config:2.0" xmlns:rest="urn:switchyard-component-resteasy:config:2.0" xmlns:soap="urn:switchyard-component-soap:config:2.0" xmlns:sca="http://docs.oasis-open.org/ns/opencsa/sca/200912" xmlns:sy="urn:switchyard-config:switchyard:2.0" xmlns:tr="urn:switchyard-config:transform:2.0" >
+<!--
+    JBoss, Home of Professional Open Source
+    Copyright 2013, Red Hat, Inc. and/or its affiliates, and individual
+    contributors by the @authors tag. See the copyright.txt in the
+    distribution for a full listing of individual contributors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+    <sca:composite xmlns="http://docs.oasis-open.org/ns/opencsa/sca/200912" name="policy-security-openid" targetNamespace="urn:switchyard-quickstart-demo:policy-security-openid:0.1.0">
+        <sca:service name="WorkService" promote="WorkService">
+            <sca:interface.wsdl interface="META-INF/WorkService.wsdl#wsdl.porttype(WorkService)"/>
+            <soap:binding.soap>
+                <soap:wsdl>META-INF/WorkService.wsdl</soap:wsdl>
+                <soap:contextPath>policy-security-openid</soap:contextPath>
+            </soap:binding.soap>
+        </sca:service>
+        <sca:component name="WorkService">
+            <bean:implementation.bean class="org.switchyard.quickstarts.demo.policy.security.openid.WorkServiceBean" requires="authorization"/>
+            <sca:service name="WorkService" requires="clientAuthentication" sy:security="app-security"><!-- TODO: confidentiality -->
+                <sca:interface.java interface="org.switchyard.quickstarts.demo.policy.security.openid.WorkService"/>
+            </sca:service>
+        </sca:component>
+
+        <sca:service name="OrderService" promote="OrderService/OrderService">
+            <rest:binding.rest>
+                <rest:messageComposer class="org.switchyard.quickstarts.rest.binding.CustomComposer"/>
+                <rest:interfaces>org.switchyard.quickstarts.rest.binding.OrderResource</rest:interfaces>
+                <rest:contextPath>policy-security-openid/rest</rest:contextPath>
+                <rest:contextParams>
+                    <rest:contextParam name="resteasy.providers" value="org.switchyard.quickstarts.rest.binding.ItemNotFoundExceptionMapper,org.switchyard.quickstarts.rest.binding.WrongRequestArgsExceptionMapper"/>
+                </rest:contextParams>
+            </rest:binding.rest>
+        </sca:service>
+		<sca:component name="OrderService">
+            <bean:implementation.bean class="org.switchyard.quickstarts.rest.binding.OrderServiceImpl" requires="authorization"/>
+            <sca:service name="OrderService" requires="clientAuthentication" sy:security="app-security">
+                <sca:interface.java interface="org.switchyard.quickstarts.rest.binding.OrderService"/>
+            </sca:service>
+        </sca:component>
+    </sca:composite>
+    <transforms>
+        <tr:transform.java class="org.switchyard.quickstarts.demo.policy.security.openid.Transformers" from="java:org.switchyard.quickstarts.demo.policy.security.openid.WorkAck" to="java:org.switchyard.quickstarts.demo.policy.security.openid.Work"/>
+        <tr:transform.java xmlns="urn:switchyard-config:transform:1.0" class="org.switchyard.quickstarts.demo.policy.security.openid.Transformers" from="java:org.switchyard.quickstarts.demo.policy.security.openid.WorkAck" to="{urn:switchyard-quickstart-demo:policy-security-openid:0.1.0}doWorkResponse"/>
+        <tr:transform.java xmlns="urn:switchyard-config:transform:1.0" class="org.switchyard.quickstarts.demo.policy.security.openid.Transformers" from="{urn:switchyard-quickstart-demo:policy-security-openid:0.1.0}doWork" to="java:org.switchyard.quickstarts.demo.policy.security.openid.Work"/>
+    </transforms>
+    <domain>
+		<securities>
+			<security callbackHandler="org.switchyard.security.jboss.wildfly.callback.handler.JWTCallbackHandler" name="app-security" rolesAllowed="user, admin" securityDomain="openid-validate-token">
+            </security>
+        </securities>
+    </domain>
+</switchyard>

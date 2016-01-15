@@ -15,11 +15,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.switchyard.quickstarts.demos</groupId>
-    <artifactId>switchyard-demo-policy-security-saml</artifactId>
+    <artifactId>switchyard-demo-policy-security-openid</artifactId>
     <version>2.1.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>Quickstart Demo : Security Policy : SAML Assertion (+SSL)</name>
-    <description>Quickstart Demo : Security Policy : SAML Assertion (+SSL)</description>
+    <name>Quickstart Demo : Security Policy : OpenId Connect (+SSL)</name>
+    <description>Quickstart Demo : Security Policy : OpenId Connect (+SSL)</description>
     <url>http://switchyard.org</url>
     <organization>
         <name>JBoss by Red Hat</name>
@@ -44,12 +44,9 @@
     </licenses>
     <properties>
         <!-- Bundle symbolic name may not contain dashes -->
-        <bundle.symbolic.name>${project.groupId}.switchyard.demo.policy.security.saml</bundle.symbolic.name>
+        <bundle.symbolic.name>${project.groupId}.switchyard.demo.policy.security.openid</bundle.symbolic.name>
         <deploy.skip>true</deploy.skip>
-        <wildfly.port>9990</wildfly.port>
-		<wildfly.hostname>localhost</wildfly.hostname>
-		<wildfly.username>admin</wildfly.username>
-		<wildfly.password>admin</wildfly.password>
+        <wildfly.port>9999</wildfly.port>
         <maven.compiler.target>1.6</maven.compiler.target>
         <maven.compiler.source>1.6</maven.compiler.source>
         <switchyard.osgi.import>*</switchyard.osgi.import>
@@ -84,11 +81,6 @@
             <artifactId>switchyard-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wildfly</groupId>
-            <artifactId>wildfly-picketlink</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.switchyard.components</groupId>
             <artifactId>switchyard-component-test-mixin-http</artifactId>
             <scope>test</scope>
@@ -109,8 +101,17 @@
         </dependency>
         <dependency>
             <groupId>org.switchyard.components</groupId>
+            <artifactId>switchyard-component-resteasy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.switchyard.components</groupId>
             <artifactId>switchyard-component-soap</artifactId>
         </dependency>
+        <dependency>
+			<groupId>org.apache.maven.surefire</groupId>
+			<artifactId>surefire-junit4</artifactId>
+			<version>2.4.3</version>
+		</dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -189,31 +190,12 @@
                             <goal>deploy-only</goal>
                         </goals>
                         <configuration>
-							<hostname>${wildfly.hostname}</hostname>
-							<port>${wildfly.port}</port>
-							<username>${wildfly.username}</username>
-							<password>${wildfly.password}</password>
-                            <!--<beforeDeployment>
+                            <beforeDeployment>
                                 <scripts>
                                     <script>${config.file}</script>
                                 </scripts>
-                            </beforeDeployment>-->
+                            </beforeDeployment>
                             <filename>${project.build.finalName}.jar</filename>
-                            <skip>${deploy.skip}</skip>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>deploy-picketlink</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>deploy-only</goal>
-                        </goals>
-                        <configuration>
-							<hostname>${wildfly.hostname}</hostname>
-							<port>${wildfly.port}</port>
-							<username>${wildfly.username}</username>
-							<password>${wildfly.password}</password>
-                            <filename>../picketlink-sts.war</filename>
                             <skip>${deploy.skip}</skip>
                         </configuration>
                     </execution>
@@ -224,31 +206,7 @@
                             <goal>undeploy</goal>
                         </goals>
                         <configuration>
-							<hostname>${wildfly.hostname}</hostname>
-							<port>${wildfly.port}</port>
-							<username>${wildfly.username}</username>
-							<password>${wildfly.password}</password>
                             <filename>${project.build.finalName}.jar</filename>
-                            <skip>${deploy.skip}</skip>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>undeploy-picketlink</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>undeploy</goal>
-                        </goals>
-                        <configuration>
-							<hostname>${wildfly.hostname}</hostname>
-							<port>${wildfly.port}</port>
-							<username>${wildfly.username}</username>
-							<password>${wildfly.password}</password>
-                            <!--<afterDeployment>
-                                <scripts>
-                                    <script>${unconfig.file}</script>
-                                </scripts>
-                            </afterDeployment>-->
-                            <filename>../picketlink-sts.war</filename>
                             <skip>${deploy.skip}</skip>
                         </configuration>
                     </execution>
@@ -260,7 +218,7 @@
                 <configuration>
                     <executable>java</executable>
                     <classpathScope>test</classpathScope>
-                    <mainClass>org.switchyard.quickstarts.demo.policy.security.saml.WorkServiceMain</mainClass>
+                    <mainClass>org.switchyard.quickstarts.demo.policy.security.openid.WorkServiceMain</mainClass>
                 </configuration>
             </plugin>
             <!-- Attach sources -->
@@ -291,8 +249,8 @@
             <id>wildfly</id>
             <properties>
                 <wildfly.port>9990</wildfly.port>
-                <config.file>config_wildfly.cli</config.file>
-                <unconfig.file>unconfig_wildfly.cli</unconfig.file>
+                <config.file>config.cli</config.file>
+                <unconfig.file>unconfig.cli</unconfig.file>
             </properties>
         </profile>
     </profiles>

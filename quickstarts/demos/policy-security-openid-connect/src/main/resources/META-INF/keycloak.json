@@ -1,0 +1,9 @@
+{
+  "realm": "demo2",
+  "realm-public-key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuuKsh2NYf/Zj7bSRNdT6RhvIA+vEtLkwmCCJmf9lSMLo45Pb7WKmApprfz81AHORDUV9+FuAB6euBq2Jk3fQgjI7ay629Ku6dMY06ESt7C4ky3mlfNFprIMpiB/AZMkQq9b1P6d0g3wUaYnEpJtmjU5gq0HcwZHbRoMI9MomDZThXYNPvi4IBXXpWasM9KtAGF8UklUCI5fl03R1hB1ssJwyZ4dQJiFJY5G0JaoqsFUrWezRimNioNH+JPt5JatLQ1oEUsx4zit4sjJJM3zWTpiBl3twRrgpW3bv+DC5zJY311N2XdHPwmjivv3oGFLT/G+2tAY8dx8OWl8V3IIkpwIDAQAB",
+  "bearer-only": true,
+  "auth-server-url": "http://localhost:9080/auth",
+  "ssl-required": "external",
+  "resource": "policy-security-openid",
+  "use-resource-role-mappings": true
+}
