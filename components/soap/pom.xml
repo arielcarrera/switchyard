@@ -85,6 +85,16 @@
             <groupId>org.switchyard.components</groupId>
             <artifactId>switchyard-component-common</artifactId>
         </dependency>
+         <dependency>
+            <groupId>org.switchyard.components</groupId>
+            <artifactId>switchyard-component-bean</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+	      <groupId>org.switchyard.components</groupId>
+	      <artifactId>switchyard-component-test-mixin-cdi</artifactId>
+	      <scope>test</scope>
+	    </dependency>
         <dependency>
             <groupId>org.jboss.spec.javax.servlet</groupId>
             <artifactId>jboss-servlet-api_3.0_spec</artifactId>

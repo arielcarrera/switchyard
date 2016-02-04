@@ -69,7 +69,6 @@ import org.w3c.dom.Node;
  * @author Magesh Kumar B <mageshbk@jboss.com> (C) 2011 Red Hat Inc.
  */
 public class InboundHandler extends BaseServiceHandler {
-
     private static final Logger LOGGER = Logger.getLogger(InboundHandler.class);
     private static final long DEFAULT_TIMEOUT = 15000;
     private static final String MESSAGE_NAME = "org.switchyard.soap.messageName";
@@ -381,7 +380,11 @@ public class InboundHandler extends BaseServiceHandler {
             if ((faultAction != null) && (msgContext != null)) {
                 msgContext.put(SOAPUtil.WSA_ACTION_STR, faultAction);
             }
-            throw new SOAPFaultException(SOAPUtil.createFault(ex, _bindingId, WSDLUtil.getFaultQName(operation, ex.getClass().getSimpleName())));
+            SOAPFaultException sfe = extractSOAPFaultException(ex);
+            if (sfe == null) {
+                sfe = new SOAPFaultException(SOAPUtil.createFault(ex, _bindingId, WSDLUtil.getFaultQName(operation, ex.getClass().getSimpleName())));
+            }
+            throw sfe;
         }
         if (exchange.getState() == ExchangeState.FAULT && soapResponse.getSOAPBody().getFault() == null) {
             return handleException(soapResponse, oneWay, 
@@ -392,6 +395,31 @@ public class InboundHandler extends BaseServiceHandler {
             LOGGER.trace("Inbound --> Response:[" + _service.getName() + "][" + SOAPUtil.soapMessageToString(soapResponse) + "]");
         }
         return soapResponse;
+    }
+
+    private SOAPFaultException extractSOAPFaultException(Throwable ex) {
+        SOAPLogger.ROOT_LOGGER.searchingRecursively(SOAPFaultException.class.getName(), ex == null ? null : ex.getClass().getName());
+
+        if (ex == null) {
+            return null;
+        }
+
+        if (ex instanceof SOAPFaultException) {
+            SOAPLogger.ROOT_LOGGER.instanceOfSoapFaultException(SOAPFaultException.class.getName());
+            return (SOAPFaultException)ex;
+        }
+
+        // Avoid endless recursion
+        if (ex.getCause() != null) {
+            if (!ex.equals(ex.getCause())) {
+                return extractSOAPFaultException(ex.getCause());
+            } else {
+                SOAPLogger.ROOT_LOGGER.breakSearchingForClass(SOAPFaultException.class.getName());
+            }
+        }
+
+        SOAPLogger.ROOT_LOGGER.reachedEndOfExceptionCause(SOAPFaultException.class.getName());
+        return null;
     }
 
     private void assertComposedMessageOK(Message soapMessage, Operation operation) throws SOAPException {
