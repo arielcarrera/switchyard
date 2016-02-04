@@ -37,6 +37,7 @@ import org.jboss.security.identity.extensions.CredentialIdentityFactory;
 import org.jboss.security.identity.plugins.SimpleRoleGroup;
 import org.jboss.security.mapping.MappingResult;
 import org.keycloak.KeycloakPrincipal;
+import org.keycloak.representations.AccessToken;
 import org.picketlink.identity.federation.bindings.jboss.auth.mapping.STSGroupMappingProvider;
 import org.picketlink.identity.federation.bindings.jboss.auth.mapping.STSPrincipalMappingProvider;
 import org.picketlink.identity.federation.core.wstrust.auth.AbstractSTSLoginModule;
@@ -90,7 +91,7 @@ public class WildflySecurityProvider extends DefaultSecurityProvider {
         } else {
             // populate from pre-verified federated assertion
         	// Process JWT-Keycloak pre-verified federated assertion
-        	processBearerCredentials(securityContext, sy_subject);
+        	processBearerCredentials(serviceSecurity,securityContext, sy_subject);
         	// Process SAML-Picketlink pre-verified federated assertion
             processAssertionCredentials(securityContext, sy_subject);
         }
@@ -100,10 +101,11 @@ public class WildflySecurityProvider extends DefaultSecurityProvider {
     /**
      * Private method to process bearer token credentials
      * 
+     * @param serviceSecurity
      * @param securityContext
      * @param sy_subject
      */
-	private void processBearerCredentials(SecurityContext securityContext, Subject sy_subject) {
+	private void processBearerCredentials(ServiceSecurity serviceSecurity, SecurityContext securityContext, Subject sy_subject) {
 		Set<BearerTokenCredential> bearerCredentials = securityContext.getCredentials(BearerTokenCredential.class);
 		
 		for (BearerTokenCredential bearerCredential : bearerCredentials) {
@@ -116,21 +118,52 @@ public class WildflySecurityProvider extends DefaultSecurityProvider {
 		    		jwt_subject.getPrincipals().add(new UserPrincipal(keycloakPrincipal.getName()));
 		    		jwt_mapped = true;
 		    		Set<RolePrincipal> roles = sy_subject.getPrincipals(RolePrincipal.class);
+		    		Set<GroupPrincipal> roleGroup = sy_subject.getPrincipals(GroupPrincipal.class);
+		    		GroupPrincipal group = null;
+		    		
+		    		for (GroupPrincipal groupPrincipal : roleGroup) {
+						if (GroupPrincipal.ROLES.equals(groupPrincipal.getName())){
+							group = groupPrincipal;
+							break;
+						}
+					}
+		    		
+		    		if (roleGroup.isEmpty() || group == null){
+	    				group = new GroupPrincipal(GroupPrincipal.ROLES);
+	    				jwt_subject.getPrincipals().add(group);
+	    				roleGroup.add(group);
+	    			} 
+		    		
+
 		    		if (!roles.isEmpty()){
-		    			Set<GroupPrincipal> roleGroup = sy_subject.getPrincipals(GroupPrincipal.class);
-		    			GroupPrincipal group = null;
-		    			if (roleGroup.isEmpty()){
-		    				group = new GroupPrincipal(GroupPrincipal.ROLES);
-		    				roleGroup.add(group);
-		    			}
 		    			for (RolePrincipal rolePrincipals : roles) {
 		    				group.addMember(rolePrincipals);
 						}
-			            if (group != null) {
-			            	jwt_subject.getPrincipals().add(group);
-			            }
 		    		}
 		    		
+		    		//Keycloak realm roles
+		    		AccessToken.Access realmAccToken = keycloakPrincipal.getKeycloakSecurityContext().getToken().getRealmAccess();
+	    			if (realmAccToken != null && realmAccToken.getRoles() != null){
+		    			for (String s : realmAccToken.getRoles()) {
+		    				RolePrincipal clientRole = new RolePrincipal(s);
+		    				group.addMember(clientRole);
+						}
+	    			}
+		    		
+		    		//Keycloak client roles
+		    		Map<String, AccessToken.Access> mapAccToken = keycloakPrincipal.getKeycloakSecurityContext().getToken().getResourceAccess();
+		    		if (mapAccToken != null){
+			    		for (Map.Entry<String, AccessToken.Access> entry : mapAccToken.entrySet()) {
+			    		    String client = entry.getKey();
+			    		    AccessToken.Access acc = entry.getValue();
+			    			if (!acc.getRoles().isEmpty()){
+				    			for (String s : acc.getRoles()) {
+				    				RolePrincipal clientRole = new RolePrincipal(client + ":" + s);
+				    				group.addMember(clientRole);
+								}
+			    			}
+			    		}
+		    		}
 				}
 
 		        if (jwt_mapped) {

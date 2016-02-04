@@ -36,7 +36,7 @@
                 <rest:interfaces>org.switchyard.quickstarts.rest.binding.OrderResource</rest:interfaces>
                 <rest:contextPath>policy-security-openid/rest</rest:contextPath>
                 <rest:contextParams>
-                    <rest:contextParam name="resteasy.providers" value="org.switchyard.quickstarts.rest.binding.ItemNotFoundExceptionMapper,org.switchyard.quickstarts.rest.binding.WrongRequestArgsExceptionMapper"/>
+                    <rest:contextParam name="resteasy.providers" value="org.switchyard.quickstarts.rest.binding.ItemNotFoundExceptionMapper,org.switchyard.quickstarts.rest.binding.WrongRequestArgsExceptionMapper,org.switchyard.quickstarts.rest.binding.UnauthorizedExceptionMapper"/>
                 </rest:contextParams>
             </rest:binding.rest>
         </sca:service>
@@ -54,7 +54,7 @@
     </transforms>
     <domain>
 		<securities>
-			<security callbackHandler="org.switchyard.security.jboss.wildfly.callback.handler.JWTCallbackHandler" name="app-security" rolesAllowed="user, admin" securityDomain="openid-validate-token">
+			<security callbackHandler="org.switchyard.security.jboss.wildfly.callback.handler.JWTCallbackHandler" name="app-security" rolesAllowed="policy-security-openid:user, admin" securityDomain="openid-validate-token">
             </security>
         </securities>
     </domain>

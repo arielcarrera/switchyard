@@ -187,14 +187,14 @@
     "email" : "admin@admin.com",
     "credentials" : [ {
       "type" : "password",
-      "hashedSaltedValue" : "zEh0zM53QT2PFaJkCvTIDJBvCbmz4v2bL8DRXcfXDknMRWAjuOR3R2CRJxzJrqXtkU/bZY3vYsr7xU60YLxt2A==",
-      "salt" : "FiADYc57Lj3oDtvK+FtxSA==",
+      "hashedSaltedValue" : "/K/oLOQII9rlkpWmXjpWazGKAHdiQB2CRnLEKuP/bXFKCeiIawQaQc8JNAs5FwiBPH3bK+6mIi/4ynyJOa0S+g==",
+      "salt" : "HeV81B+9zF8uYm8Au5msiA==",
       "hashIterations" : 1,
       "counter" : 0,
       "digits" : 0
     } ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "admin", "user" ],
+    "realmRoles" : [ "admin" ],
     "groups" : [ ]
   }, {
     "id" : "dbf54092-4fee-4a4b-a403-a019ed74c50a",
@@ -214,10 +214,30 @@
       "digits" : 0
     } ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user" ],
     "clientRoles" : {
       "policy-security-openid" : [ "user" ],
       "account" : [ "manage-account" ]
+    },
+    "groups" : [ ]
+  }, {
+    "id" : "2b6f670d-6f30-4cb4-9936-e7799252996a",
+    "createdTimestamp" : 1454614151606,
+    "username" : "test_invalid@redhat.com",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "credentials" : [ {
+      "type" : "password",
+      "hashedSaltedValue" : "0uN964O/InMQkrsvdn2Pn5OVN2XGN/Q8t45qphVe6t+bV6LF2tqBxiISyoXj3TvOsvHdG+6MB/NYLl0vHhf0NA==",
+      "salt" : "fNqdoNUwqv+L+C0tx3Uovw==",
+      "hashIterations" : 1,
+      "counter" : 0,
+      "digits" : 0
+    } ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "offline_access", "user" ],
+    "clientRoles" : {
+      "account" : [ "manage-account", "view-profile" ]
     },
     "groups" : [ ]
   } ],

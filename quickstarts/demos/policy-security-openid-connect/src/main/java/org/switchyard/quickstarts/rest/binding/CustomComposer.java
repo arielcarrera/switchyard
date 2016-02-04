@@ -23,7 +23,6 @@ import org.switchyard.Exchange;
 import org.switchyard.ExchangeState;
 import org.switchyard.HandlerException;
 import org.switchyard.Message;
-
 import org.switchyard.component.resteasy.composer.RESTEasyBindingData;
 import org.switchyard.component.resteasy.composer.RESTEasyMessageComposer;
 
@@ -65,6 +64,10 @@ public class CustomComposer extends RESTEasyMessageComposer {
                 if (he.getCause() instanceof ItemNotFoundException) {
                     throw (Exception) he.getCause();
                 }
+    			if (he.getMessage() != null && he.getMessage().startsWith("SWITCHYARD014014")){
+    				UnauthorizedException ue = new UnauthorizedException("Unauthorized");
+    				throw (Exception) ue;
+    			}
             }
         }
 

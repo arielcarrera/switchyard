@@ -187,3 +187,12 @@ SOAPAction: urn:switchyard-quickstart-demo:policy-security-openid:0.1.0
 11. Undeploy the application
 
         mvn clean -Pdeploy -Pwildfly
+
+
+
+Note: You can try again with these users...
+
+admin (pass admin) -> with the realm role "admin" 
+test@redhat.com (pass test@redhat.com) -> with the application role "policy-security-openid:user"
+test_invalid@redhat.com (pass test_invalid@redhat.com) -> with the unauthorized realm role "user"
+

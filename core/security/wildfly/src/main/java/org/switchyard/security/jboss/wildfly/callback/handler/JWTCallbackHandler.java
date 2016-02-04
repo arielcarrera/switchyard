@@ -20,9 +20,7 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
-import org.picketlink.identity.federation.core.wstrust.auth.TokenCallback;
 import org.switchyard.security.callback.handler.SwitchYardCallbackHandler;
-import org.switchyard.security.credential.AssertionCredential;
 import org.switchyard.security.credential.BearerTokenCredential;
 import org.switchyard.security.credential.Credential;
 import org.switchyard.security.jboss.wildfly.WildflySecurityMessages;
@@ -52,7 +50,9 @@ public class JWTCallbackHandler extends SwitchYardCallbackHandler {
             if (cb instanceof PasswordCallback) {
                 for (Credential cred : credentials) {
                     if (cred instanceof BearerTokenCredential) {
-                    	((PasswordCallback)cb).setPassword(((BearerTokenCredential) cred).getToken());
+                    	char[] token = ((BearerTokenCredential) cred).getToken();
+                    	if (token == null) token = new char[0];
+                    	((PasswordCallback)cb).setPassword(token);
                     }
                 }
             }
