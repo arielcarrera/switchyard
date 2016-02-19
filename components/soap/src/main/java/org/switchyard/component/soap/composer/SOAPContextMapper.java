@@ -13,14 +13,17 @@
  */
 package org.switchyard.component.soap.composer;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPHeaderElement;
 import javax.xml.soap.SOAPMessage;
@@ -28,8 +31,11 @@ import javax.xml.soap.SOAPMessage;
 import org.switchyard.Context;
 import org.switchyard.Property;
 import org.switchyard.Scope;
+import org.switchyard.ServiceDomain;
+import org.switchyard.ServiceReference;
 import org.switchyard.common.io.pull.ElementPuller;
 import org.switchyard.common.lang.Strings;
+import org.switchyard.common.property.PropertyConstants;
 import org.switchyard.common.xml.XMLHelper;
 import org.switchyard.component.common.composer.BaseRegexContextMapper;
 import org.switchyard.component.common.label.ComponentLabel;
@@ -51,12 +57,18 @@ public class SOAPContextMapper extends BaseRegexContextMapper<SOAPBindingData> {
      * The HTTP responce code.
      */
     public static final String HTTP_RESPONSE_STATUS = "http_response_status";
+
+    // Property used to get the Service Domain from the CompositeContext
+    private static final String SERVICE_REFERENCE_PROPERTY = "org.switchyard.bus.camel.consumer";
+
     /**
     * Headers to be excluded.
     */
     public static final List<String> HTTP_HEADERS_EXCLUDED = Arrays.asList(new String[]{"content-type", "content-length"});
     private static final String[] SOAP_HEADER_LABELS = new String[]{ComponentLabel.SOAP.label(), EndpointLabel.SOAP.label()};
     private static final String[] SOAP_MIME_LABELS = new String[]{ComponentLabel.SOAP.label(), EndpointLabel.HTTP.label()};
+
+    private static final String HEADER_NAMESPACE_PROPAGATION = "org.switchyard.propagate.property";
 
     private SOAPHeadersType _soapHeadersType = null;
 
@@ -83,6 +95,8 @@ public class SOAPContextMapper extends BaseRegexContextMapper<SOAPBindingData> {
      */
     @Override
     public void mapFrom(SOAPBindingData source, Context context) throws Exception {
+        super.mapFrom(source, context);
+
         SOAPMessage soapMessage = source.getSOAPMessage();
         if (soapMessage.getSOAPBody().hasFault() && (source.getSOAPFaultInfo() != null)) {
             context.setProperty(SOAPComposition.SOAP_FAULT_INFO, source.getSOAPFaultInfo(), Scope.EXCHANGE).addLabels(SOAP_HEADER_LABELS);
@@ -94,7 +108,13 @@ public class SOAPContextMapper extends BaseRegexContextMapper<SOAPBindingData> {
             if (matches(key)) {
                 List<String> values = source.getHttpHeaders().get(key);
                 if (values != null) {
-                    context.setProperty(key, values).addLabels(SOAP_MIME_LABELS);
+                    if (values.size() == 1) {
+                        context.setProperty(key, values.get(0)).addLabels(SOAP_MIME_LABELS);
+                    } else {
+                        context.setProperty(key, values).addLabels(SOAP_MIME_LABELS);
+                    }
+
+                    copyHttpHeadersToContext(context, key, values);
                 }
             }
         }
@@ -125,6 +145,8 @@ public class SOAPContextMapper extends BaseRegexContextMapper<SOAPBindingData> {
                 if (value != null) {
                     String name = qname.toString();
                     context.setProperty(name, value).addLabels(SOAP_HEADER_LABELS);
+
+                    copySOAPHeadersToContext(context, qname.getLocalPart(), value);
                 }
             }
         }
@@ -135,6 +157,8 @@ public class SOAPContextMapper extends BaseRegexContextMapper<SOAPBindingData> {
      */
     @Override
     public void mapTo(Context context, SOAPBindingData target) throws Exception {
+        super.mapTo(context, target);
+
         SOAPMessage soapMessage = target.getSOAPMessage();
         SOAPHeader soapHeader = soapMessage.getSOAPHeader();
         for (Property property : context.getProperties()) {
@@ -190,9 +214,42 @@ public class SOAPContextMapper extends BaseRegexContextMapper<SOAPBindingData> {
                             target.getHttpHeaders().put(name, Collections.singletonList((String)value));
                         }
                     }
+                } else {
+                    copyToSOAPHeader(soapHeader, property);
                 }
             }
         }
     }
 
+    private void copyHttpHeadersToContext(Context context, String name, List<String> values) {
+        if (values.size() == 1) {
+            context.setProperty(name, values.get(0), Scope.EXCHANGE).addLabels(SOAP_MIME_LABELS);
+        } else {
+            context.setProperty(name, values, Scope.EXCHANGE).addLabels(SOAP_MIME_LABELS);
+        }
+    }
+
+    private void copySOAPHeadersToContext(Context context, String name, Object value) {
+        if (matches(name, _includeRegexes, new ArrayList<Pattern>())) {
+            context.setProperty(name, value, Scope.EXCHANGE).addLabels(SOAP_HEADER_LABELS);
+        }
+    }
+
+    private void copyToSOAPHeader(SOAPHeader soapHeader, Property property) throws IOException, SOAPException {
+        if ((property != null) && (matches(property.getName(), _includeRegexes, new ArrayList<Pattern>()))) {
+            String v = property.getValue().toString();
+            QName qname = new QName(HEADER_NAMESPACE_PROPAGATION, property.getName());
+            if (SOAPHeadersType.XML.equals(_soapHeadersType)) {
+                try {
+                    Element xmlElement = new ElementPuller().pull(new StringReader(v));
+                    Node xmlNode = soapHeader.getOwnerDocument().importNode(xmlElement, true);
+                    soapHeader.appendChild(xmlNode);
+                } catch (Throwable t) {
+                    soapHeader.addChildElement(qname).setValue(v);
+                }
+            } else {
+                soapHeader.addChildElement(qname).setValue(v);
+            }
+        }
+    }
 }
